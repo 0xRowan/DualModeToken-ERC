@@ -56,30 +56,36 @@ interface IERC_DUAL_MODE {
     /// @param account The address converting tokens
     /// @param amount The amount converted
     /// @param commitment The cryptographic commitment created
+    /// @param timestamp Block timestamp of the conversion
     event ConvertToPrivacy(
         address indexed account,
         uint256 amount,
-        bytes32 indexed commitment
+        bytes32 indexed commitment,
+        uint256 timestamp
     );
 
     /// @notice Emitted when value is converted from privacy to transparent mode
     /// @param initiator The address initiating the conversion
     /// @param recipient The address receiving tokens
     /// @param amount The amount converted
+    /// @param timestamp Block timestamp of the conversion
     event ConvertToPublic(
         address indexed initiator,
         address indexed recipient,
-        uint256 amount
+        uint256 amount,
+        uint256 timestamp
     );
 
     /// @notice Emitted when a commitment is appended to the Merkle tree
     /// @param subtreeIndex The subtree index
     /// @param commitment The commitment hash
     /// @param leafIndex The leaf position within the subtree
+    /// @param timestamp Block timestamp of the commitment
     event CommitmentAppended(
         uint32 indexed subtreeIndex,
         bytes32 indexed commitment,
-        uint32 leafIndex
+        uint32 leafIndex,
+        uint256 timestamp
     );
 
     /// @notice Emitted when a nullifier is marked as spent
