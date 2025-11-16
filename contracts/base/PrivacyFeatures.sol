@@ -230,7 +230,7 @@ abstract contract PrivacyFeatures is IZRC20, ReentrancyGuard {
     // ===================================
 
     /**
-     * @dev Internal privacy transfer (pure privacy, no unshield)
+     * @dev Internal privacy transfer
      * @param proofType 0 for active, 1 for finalized, 2 for rollover
      * @param proof ZK-SNARK proof
      * @param encryptedNotes Encrypted notes
@@ -254,11 +254,11 @@ abstract contract PrivacyFeatures is IZRC20, ReentrancyGuard {
     }
 
     /**
-     * @dev Internal privacy burn (for unshield)
+     * @dev Internal privacy burn
      * @param proofType 0 for active, 1 for finalized
      * @param proof ZK-SNARK proof
      * @param encryptedNotes Encrypted notes
-     * @return burnAmount The amount to unshield
+     * @return burnAmount The amount
      */
     function _privacyBurn(
         uint8 proofType,

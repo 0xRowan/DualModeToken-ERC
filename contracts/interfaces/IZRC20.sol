@@ -4,7 +4,6 @@ pragma solidity 0.8.20;
 /**
  * @title IZRC20
  * @dev Interface for privacy-enhanced tokens using ZK-SNARKs
- *      This is the same interface used in shield version for compatibility
  */
 interface IZRC20 {
 
@@ -32,13 +31,6 @@ interface IZRC20 {
         uint256 viewTag
     );
 
-    event Unshielded(
-        address indexed initiator,
-        address indexed recipient,
-        uint256 amount,
-        uint256 timestamp
-    );
-
     // ===================================
     //       STATE STRUCTURE
     // ===================================
@@ -54,10 +46,6 @@ interface IZRC20 {
     // ===================================
     //    PRIVACY-SPECIFIC VIEW FUNCTIONS
     // ===================================
-
-    // Note: name(), symbol(), decimals(), totalSupply() are provided by ERC20
-    // DualModeToken inherits ERC20, so we don't redefine them here to avoid redundancy
-
     function finalizedRoot() external view returns (bytes32);
     function activeSubtreeRoot() external view returns (bytes32);
 
