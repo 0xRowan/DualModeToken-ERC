@@ -1,0 +1,116 @@
+# Dual-Mode Token Standard (ERC Proposal)
+
+**A token standard combining ERC-20 (public) and ZK-SNARK (private) functionality within a single token.**
+
+> **Status**: Draft - Seeking community feedback
+> **Discussions**: [Ethereum Magicians](TBD)
+
+---
+
+## 🎯 Core Concept
+
+**"Privacy is a mode, not a separate token."**
+
+Users can:
+- Hold tokens in **public mode** (full ERC-20 compatibility)
+- Convert to **private mode** (ZK-SNARK protected balances)
+- Convert back to **public mode** freely
+- One token, unified liquidity, no wrapper contracts
+
+---
+
+## 📋 Proposal Documents
+
+### Main Specification
+- **[ERC_DRAFT.md](./ERC_DRAFT.md)** - Complete ERC specification (ready for GitHub submission)
+
+### Supporting Documentation
+- **[RATIONALE.md](./docs/RATIONALE.md)** - Design decisions and comparisons
+- **[contracts/README.md](./contracts/README.md)** - Smart contracts documentation
+
+---
+
+## 🆚 Comparison with Existing Approaches
+
+| Aspect | Wrapper-Based | Protocol-Level | Dual-Mode (Ours) |
+|--------|--------------|----------------|------------------|
+| **Liquidity** | Fragmented | Unified | ✅ Unified |
+| **Deployment** | ✅ Today | Years (fork) | ✅ Today |
+| **Reversibility** | ✅ Yes | Often no | ✅ Yes |
+| **ERC-20 Compatible** | Separate token | N/A | ✅ Full |
+| **Capital Efficiency** | Low | High | ✅ High |
+
+---
+
+## 🔧 Quick Example
+
+```solidity
+// Public mode (ERC-20)
+token.transfer(recipient, 100 ether);
+
+// Convert to private mode
+token.toPrivacy(100 ether, proofType, proof, encryptedNote);
+
+// Private transfer (ZK-SNARK)
+token.privacyTransfer(proofType, proof, encryptedNotes);
+
+// Convert back to public
+token.toPublic(recipient, proofType, proof, encryptedNotes);
+```
+
+---
+
+## 📚 Repository Structure
+
+```
+DualModeToken-ERC/
+├── ERC_DRAFT.md              # Main ERC specification
+├── README.md                 # This file
+├── QUICK_START.md            # Quick start guide
+├── contracts/                # Reference implementation
+│   ├── core/                 # Main contracts
+│   ├── base/                 # Base contracts
+│   ├── interfaces/           # Standard interfaces
+│   └── README.md             # Contract documentation
+└── docs/
+    └── RATIONALE.md          # Design decisions
+```
+
+---
+
+## 🤝 Contributing
+
+This is an open proposal seeking community feedback. We welcome:
+
+- Technical critique and improvements
+- Use case suggestions
+- Security analysis
+- Implementation feedback
+- Alternative design proposals
+
+**Discussion Forum**: [Ethereum Magicians](TBD) (to be created)
+
+---
+
+## 🔗 Reference Implementation
+
+- **Smart Contracts**: [contracts/](./contracts/)
+- **Main Contract**: [DualModeToken.sol](./contracts/core/DualModeToken.sol)
+- **Interface Definition**: [IDualModeToken.sol](./contracts/interfaces/IDualModeToken.sol)
+- **Documentation**: [contracts/README.md](./contracts/README.md)
+
+---
+
+## 📝 License
+
+Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
+
+---
+
+## 👥 Authors
+
+- ZK Protocol Team ([@ZK-Protocol](https://github.com/ZK-Protocol))
+
+---
+
+**Built with ❤️ for Ethereum privacy**
