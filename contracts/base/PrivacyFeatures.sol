@@ -42,7 +42,7 @@ abstract contract PrivacyFeatures is IZRC20, ReentrancyGuard {
     //        STATE VARIABLES
     // ===================================
 
-    // --- Burn Address for Unshield ---
+    // --- Burn Address  ---
     uint256 public constant BURN_ADDRESS_X = 3782696719816812986959462081646797447108674627635188387134949121808249992769;
     uint256 public constant BURN_ADDRESS_Y = 10281180275793753078781257082583594598751421619807573114845203265637415315067;
 

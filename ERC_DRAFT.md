@@ -638,8 +638,6 @@ Instead, track by increment/decrement:
 
 **Important Note on Gas Costs**: On-chain gas costs remain similar (~300-400K per transaction) for both architectures, as zk-SNARK proof verification dominates (80-85% of gas). The dual-layer design optimizes **off-chain performance** (proof generation speed, client synchronization efficiency) rather than on-chain execution costs.
 
-**Alternative Considered**: Sparse Merkle Trees (SMT) with on-chain frontier node storage were rejected due to prohibitively high storage costs and minimal performance benefits over circuit-verified Merkle proofs.
-
 ## Backwards Compatibility
 
 This standard is fully backward compatible with ERC-20:
