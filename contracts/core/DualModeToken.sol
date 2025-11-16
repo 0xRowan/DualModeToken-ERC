@@ -211,7 +211,7 @@ contract DualModeToken is ERC20, PrivacyFeatures, IDualModeToken {
 
     /**
      * @notice Convert public balance to privacy mode
-     * @dev Burns ERC20 tokens and creates privacy commitment
+     * @dev Decreases public balance and increases privacy balance via commitment creation
      * @param amount Amount to convert
      * @param proofType 0 for regular, 1 for rollover
      * @param proof ZK-SNARK proof
@@ -258,7 +258,7 @@ contract DualModeToken is ERC20, PrivacyFeatures, IDualModeToken {
 
     /**
      * @notice Convert privacy balance to public mode
-     * @dev Converts privacy commitments to public ERC20 tokens
+     * @dev Decreases privacy balance and increases recipient's public balance
      * @param recipient Address to receive public tokens
      * @param proofType 0 for active, 1 for finalized
      * @param proof ZK-SNARK proof
@@ -272,8 +272,8 @@ contract DualModeToken is ERC20, PrivacyFeatures, IDualModeToken {
     ) external override nonReentrant {
         if (recipient == address(0)) revert ZeroAddress();
 
-        // 1. Convert privacy tokens to get amount
-        uint256 conversionAmount = _privacyBurn(proofType, proof, encryptedNotes);
+        // 1. Convert privacy mode to public mode and get amount
+        uint256 conversionAmount = _convertPrivacyToPublic(proofType, proof, encryptedNotes);
 
         // 2. Calculate fee
         uint256 protocolFee = (conversionAmount * platformFeeBps) / 10000;

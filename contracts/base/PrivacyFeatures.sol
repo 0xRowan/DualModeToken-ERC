@@ -35,7 +35,7 @@ abstract contract PrivacyFeatures is IZRC20, ReentrancyGuard {
     error InvalidStateForRegularMint();
     error InvalidStateForRollover();
     error SubtreeCapacityExceeded(uint256 needed, uint256 available);
-    error InvalidUnshieldAmount(uint256 expected, uint256 proven);
+    error InvalidConversionAmount(uint256 expected, uint256 proven);
     error InvalidMintAmount(uint256 expected, uint256 proven);
 
     // ===================================
@@ -254,27 +254,27 @@ abstract contract PrivacyFeatures is IZRC20, ReentrancyGuard {
     }
 
     /**
-     * @dev Internal privacy burn
+     * @dev Convert privacy balance to public mode (internal)
      * @param proofType 0 for active, 1 for finalized
      * @param proof ZK-SNARK proof
      * @param encryptedNotes Encrypted notes
-     * @return burnAmount The amount
+     * @return conversionAmount The amount converted to public mode
      */
-    function _privacyBurn(
+    function _convertPrivacyToPublic(
         uint8 proofType,
         bytes calldata proof,
         bytes[] calldata encryptedNotes
-    ) internal returns (uint256 burnAmount) {
+    ) internal returns (uint256 conversionAmount) {
         if (!state.initialized) revert PrivacyNotInitialized();
         if (proofType >= 2) revert InvalidProofType(proofType);
 
         if (proofType == 0) {
-            burnAmount = _transferActive(proof, encryptedNotes, true);
+            conversionAmount = _transferActive(proof, encryptedNotes, true);
         } else {
-            burnAmount = _transferFinalized(proof, encryptedNotes, true);
+            conversionAmount = _transferFinalized(proof, encryptedNotes, true);
         }
 
-        privacyTotalSupply -= burnAmount;
+        privacyTotalSupply -= conversionAmount;
     }
 
     // ===================================
@@ -285,27 +285,27 @@ abstract contract PrivacyFeatures is IZRC20, ReentrancyGuard {
         bytes calldata _proof,
         bytes[] calldata _encryptedNotes,
         bool isModeConversion
-    ) private returns (uint256 withdrawAmount) {
+    ) private returns (uint256 conversionAmount) {
         (uint[2] memory a, uint[2][2] memory b, uint[2] memory c, uint[13] memory pubSignals) =
             abi.decode(_proof, (uint[2], uint[2][2], uint[2], uint[13]));
 
         bytes32 newActiveSubTreeRoot = bytes32(pubSignals[2]);
         uint256 numRealOutputs = pubSignals[3];
-        withdrawAmount = pubSignals[4];
+        conversionAmount = pubSignals[4];
         bytes32 oldActiveSubTreeRoot = bytes32(pubSignals[5]);
 
         if (isModeConversion) {
             // Must convert non-zero amount for mode conversion
-            if (withdrawAmount == 0) revert InvalidUnshieldAmount(1, 0);
+            if (conversionAmount == 0) revert InvalidConversionAmount(1, 0);
             // Verify first output goes to burn address
             uint256 recipientX = pubSignals[10];
             uint256 recipientY = pubSignals[11];
             if (recipientX != BURN_ADDRESS_X || recipientY != BURN_ADDRESS_Y) {
-                revert InvalidUnshieldAmount(0, 1);
+                revert InvalidConversionAmount(0, 1);
             }
         } else {
             // Pure privacy transfer, conversion amount must be 0
-            if (withdrawAmount != 0) revert InvalidUnshieldAmount(0, withdrawAmount);
+            if (conversionAmount != 0) revert InvalidConversionAmount(0, conversionAmount);
         }
 
         uint256 availableCapacity = uint256(SUBTREE_CAPACITY - state.nextLeafIndexInSubtree);
@@ -328,25 +328,25 @@ abstract contract PrivacyFeatures is IZRC20, ReentrancyGuard {
         bytes calldata _proof,
         bytes[] calldata _encryptedNotes,
         bool isModeConversion
-    ) private returns (uint256 withdrawAmount) {
+    ) private returns (uint256 conversionAmount) {
         (uint[2] memory a, uint[2][2] memory b, uint[2] memory c, uint[14] memory pubSignals) =
             abi.decode(_proof, (uint[2], uint[2][2], uint[2], uint[14]));
 
         bytes32 newActiveRoot = bytes32(pubSignals[2]);
         uint256 numRealOutputs = pubSignals[3];
-        withdrawAmount = pubSignals[4];
+        conversionAmount = pubSignals[4];
         bytes32 oldFinalizedRoot = bytes32(pubSignals[5]);
         bytes32 oldActiveRoot = bytes32(pubSignals[6]);
 
         if (isModeConversion) {
-            if (withdrawAmount == 0) revert InvalidUnshieldAmount(1, 0);
+            if (conversionAmount == 0) revert InvalidConversionAmount(1, 0);
             uint256 recipientX = pubSignals[11];
             uint256 recipientY = pubSignals[12];
             if (recipientX != BURN_ADDRESS_X || recipientY != BURN_ADDRESS_Y) {
-                revert InvalidUnshieldAmount(0, 1);
+                revert InvalidConversionAmount(0, 1);
             }
         } else {
-            if (withdrawAmount != 0) revert InvalidUnshieldAmount(0, withdrawAmount);
+            if (conversionAmount != 0) revert InvalidConversionAmount(0, conversionAmount);
         }
 
         uint256 availableCapacity = uint32(SUBTREE_CAPACITY - state.nextLeafIndexInSubtree);
@@ -375,13 +375,13 @@ abstract contract PrivacyFeatures is IZRC20, ReentrancyGuard {
 
         bytes32 newActive = bytes32(pubSignals[2]);
         bytes32 newFinalized = bytes32(pubSignals[3]);
-        uint256 withdrawAmount = pubSignals[4];
+        uint256 conversionAmount = pubSignals[4];
         bytes32 oldActive = bytes32(pubSignals[5]);
         bytes32 oldFinalized = bytes32(pubSignals[6]);
         uint256 subtreeIndex_from_proof = pubSignals[12];
 
-        // Rollover transfers don't support unshield
-        if (withdrawAmount != 0) revert InvalidUnshieldAmount(0, withdrawAmount);
+        // Rollover transfers don't support mode conversion
+        if (conversionAmount != 0) revert InvalidConversionAmount(0, conversionAmount);
 
         if (state.nextLeafIndexInSubtree != SUBTREE_CAPACITY) revert InvalidStateForRollover();
         if (activeSubtreeRoot != oldActive) revert OldActiveRootMismatch(activeSubtreeRoot, oldActive);

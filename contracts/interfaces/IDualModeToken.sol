@@ -11,7 +11,7 @@ import "./IZRC20.sol";
  * Architecture:
  *   - Public Mode: Standard ERC20 with transparent balances and transfers
  *   - Privacy Mode: ZK-SNARK protected balances and transfers
- *   - Mode Conversion: Shield (public → private) and Unshield (private → public)
+ *   - Mode Conversion: toPrivacy (public → private) and toPublic (private → public)
  */
 interface IDualModeToken is IERC20, IZRC20 {
 
@@ -65,7 +65,7 @@ interface IDualModeToken is IERC20, IZRC20 {
 
     /**
      * @notice Convert public balance to privacy mode
-     * @dev Burns ERC20 tokens and creates privacy commitment via ZK proof
+     * @dev Decreases public balance and creates privacy commitment via ZK proof
      * @param amount Amount to convert (must match proof)
      * @param proofType 0 for regular mint, 1 for rollover mint
      * @param proof ZK-SNARK proof of valid commitment creation
@@ -80,7 +80,7 @@ interface IDualModeToken is IERC20, IZRC20 {
 
     /**
      * @notice Convert privacy balance to public mode
-     * @dev Converts privacy commitments to public ERC20 tokens via ZK proof
+     * @dev Decreases privacy balance and increases recipient's public balance via ZK proof
      * @param recipient Address to receive public tokens
      * @param proofType 0 for active transfer, 1 for finalized transfer
      * @param proof ZK-SNARK proof of note ownership and spending
