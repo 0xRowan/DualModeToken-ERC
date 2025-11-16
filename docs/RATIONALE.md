@@ -1,6 +1,6 @@
-# Rationale: Why Dual-Mode Token Standard?
+# Rationale
 
-This document explains the design decisions behind the Dual-Mode Token Standard.
+This document explains the design decisions behind the Dual-Mode Token Standard. All content is based on the official ERC specification.
 
 ---
 
@@ -8,268 +8,229 @@ This document explains the design decisions behind the Dual-Mode Token Standard.
 
 **"Privacy is a mode, not a separate token."**
 
-This philosophy drives our entire design:
-- **One token** - not two separate assets
-- **Mode switching** - not wrapping/unwrapping
-- **Unified liquidity** - not fragmented pools
-- **Reversible privacy** - not one-way burns
+Traditional approach:
+```
+Token A (public) + Token B (private wrapper) = 2 assets
+```
+
+This standard:
+```
+Token C (public mode ↔ private mode) = 1 asset
+```
 
 ---
 
-## Problem Statement
+## Key Advantages
 
-### Current Landscape
+### 1. Unified Liquidity
+- DEXs only need one trading pair
+- No fragmentation between "public version" and "private version"
+- Full liquidity available regardless of current mode
 
-**Option 1: Wrapper-Based Privacy (e.g., Tornado Cash style)**
+### 2. Bidirectional Flexibility
+- Users can freely switch: `public → private → public → private`
+- Unlike wrappers (require unwrapping to access public features)
+- Unlike protocol-level (often irreversible)
 
-```
-Token A (public) → deposit → Token B (in pool) → withdraw → Token A
-```
+### 3. Capital Efficiency
+- Can convert to public mode for DeFi, back to private for holdings
+- No need to maintain separate balances in both forms
+- Mode conversion is internal (no external token transfers)
 
-**Problems:**
-- ❌ Two separate token addresses
-- ❌ DEXs need separate liquidity pools for Token A and Token B
-- ❌ Capital inefficiency: can't use Token A while holding privacy balance
-- ❌ User complexity: managing two different balances
-- ❌ Liquidity fragmentation: splits ecosystem
+### 4. Simplified User Experience
+- Single token address to track
+- No "wrapping" concept to understand
+- Mode switching feels like a native feature, not a workaround
 
-**Option 2: Protocol-Level Privacy (e.g., Zcash)**
+### 5. Immediate Deployability
+- Application-layer standard (no protocol changes)
+- Can be deployed today on any EVM chain
+- No coordination with core developers required
 
-```
-Blockchain natively supports private transactions
-```
-
-**Problems:**
-- ❌ Requires consensus fork (multi-year timeline)
-- ❌ Often irreversible (can't go back to transparent)
-- ❌ Not applicable to existing tokens
-- ❌ Hard to deploy incrementally
-
-### The Gap
-
-Neither solution provides:
-- ✅ Deploy-today privacy for existing tokens
-- ✅ Reversible mode switching
-- ✅ Unified liquidity
-- ✅ Full ERC-20 compatibility
-
----
-
-## Our Solution: Integrated Dual-Mode
-
-### Core Concept
-
-```
-Same Token → convert mode → Same Token → convert mode → Same Token
-  (Public)                    (Private)                  (Public)
-```
-
-**Key Insight:** Privacy and transparency are **modes of operation**, not separate assets.
-
-### Design Principles
-
-#### 1. Single Token Contract
-
-**Decision:** One contract, one address, one `totalSupply()`
-
-**Rationale:**
-- Liquidity remains unified (same DEX pool)
-- User holds same asset in both modes
-- No fragmentation of ecosystem
-
-**Trade-off:** More complex implementation vs. simpler user experience
-**Choice:** User experience wins
-
-#### 2. `totalSupply()` Semantics
-
-**Decision:** `totalSupply() = publicSupply + privacySupply`
-
-**Rationale:**
-- Reflects actual token existence
-- Supply conservation is transparent
-- Mode conversion doesn't change total supply
-
-**Alternative considered:** `totalSupply()` = public only
-- **Rejected:** Would hide privacy supply, breaking transparency
-
-#### 3. Mode Conversion Mechanism
-
-**Decision:** Burn-and-mint pattern
-
-**toPrivacy:**
-```solidity
-_burn(msg.sender, amount);        // Decrease public
-_privacyMint(amount, ...);        // Increase privacy
-// totalSupply unchanged
-```
-
-**Rationale:**
-- Leverages standard ERC-20 functions
-- Clear supply tracking
-- Events emit proper Transfer(from, address(0), amount)
-
-**Trade-off:** Uses "mint/burn" internally (implementation detail) vs. perfect terminology
-**Choice:** Standard compatibility wins (see MINT_BURN_TERMINOLOGY_ANALYSIS.md)
-
-#### 4. BURN_ADDRESS Requirement
-
-**Decision:** toPublic MUST send first output to provably unspendable address
-
-**Rationale:**
-- Prevents double-spending attack
-- Circuit doesn't know contract will mint public balance
-- Must ensure privacy note can't be spent again
-
-**Security Critical:** Without this, attacker could:
-1. Call toPublic → receive public balance
-2. Spend the privacy note again → double-spend
-
-**Alternative considered:** Custom circuit that explicitly outputs conversion amount
-- **Rejected:** Requires modifying privacy circuit, increases complexity
+### 6. Regulatory Adaptability
+- Transparent mode satisfies compliance requirements
+- Privacy mode available when legally permitted
+- Can respond to changing jurisdictional rules by adjusting mode usage
 
 ---
 
 ## Comparison with Alternatives
 
-### vs. Wrapper-Based (e.g., ERC-8065)
-
-| Aspect | Wrapper | Dual-Mode |
-|--------|---------|-----------|
-| Token addresses | 2 | 1 |
-| Liquidity | Fragmented | ✅ Unified |
-| Can wrap any token | ✅ Yes | No (need deployment) |
-| Capital efficiency | Low | ✅ High |
-
-**When to use wrapper:** Adding privacy to existing deployed tokens (e.g., DAI, USDC)
-**When to use dual-mode:** New token deployments where privacy is core feature
-
-### vs. Protocol-Level (e.g., EIP-7503, Zcash)
-
-| Aspect | Protocol | Dual-Mode |
-|--------|----------|-----------|
-| Deployment | Years | ✅ Today |
-| Requires fork | ✅ Yes | No |
-| Anonymity set | Larger | Smaller |
-| Reversibility | Often no | ✅ Yes |
-
-**When to use protocol:** Maximum privacy, network-wide anonymity set
-**When to use dual-mode:** Deploy-today privacy with reversible switching
+| Architecture | Liquidity | Capital Efficiency | User Complexity | Deployment | Reversibility |
+|--------------|-----------|-------------------|-----------------|------------|---------------|
+| Wrapper-based | Fragmented | Low (locked) | High (2 tokens) | Easy | ✅ Yes |
+| Protocol-level | Unified | High | Low | Hard (years) | ❌ Usually no |
+| **This Standard** | **Unified** | **High** | **Low (1 token)** | **Easy** | **✅ Yes** |
 
 ---
 
-## Key Design Decisions
+## Use Cases
 
-### 1. Dual Merkle Tree Architecture
+### Business
+- **Transparent mode**: Public accounting, investor reporting, compliance audits
+- **Privacy mode**: Employee payroll, supplier payments, competitive strategy
 
-**Decision:** Separate Active and Finalized trees
+### DAO
+- **Transparent mode**: Treasury operations, public grant distributions
+- **Privacy mode**: Anonymous voting, confidential negotiations
 
-**Rationale:**
-- Active: pending commitments (can be reorganized)
-- Finalized: settled commitments (immutable)
-- Two-phase commit prevents front-running
+### Individual
+- **Transparent mode**: DeFi participation (trading, lending, staking)
+- **Privacy mode**: Personal savings, private transactions
 
-**Trade-off:** Complexity vs. security
-**Choice:** Security wins
-
-### 2. Privacy Transfer Proof Types
-
-**Decision:** Three proof types (Active, Finalized, Rollover)
-
-**Rationale:**
-- Active: Fast transfers (pending state)
-- Finalized: Settled transfers (immutable)
-- Rollover: Move Active → Finalized
-
-**Alternative considered:** Single proof type
-- **Rejected:** Doesn't prevent front-running attacks
-
-### 3. Backward Compatibility Aliases
-
-**Decision:** Keep `shield()` and `unshield()` as aliases
-
-**Rationale:**
-- Helps migration from wrapper-thinking
-- Existing tools may use these names
-- No cost (simple delegation)
-
-**Alternative considered:** Only `toPrivacy()`/`toPublic()`
-- **Rejected:** May break existing integrations
-
-### 4. Fee Mechanism
-
-**Decision:** Optional protocol fee on toPublic
-
-**Rationale:**
-- Allows sustainable protocol development
-- Only on privacy→public (not on holding)
-- Configurable (can be 0)
-
-**Trade-off:** Added complexity vs. sustainability
-**Choice:** Let implementations decide
+### Regulatory Compliance
+- Can comply with "right to privacy" in permissive jurisdictions
+- Can satisfy "transparency requirements" in restrictive jurisdictions
+- Single token adapts to different regulatory environments
 
 ---
 
-## What We're NOT Trying to Solve
+## Critical Design Decisions
 
-**Clear scope boundaries:**
+### BURN_ADDRESS Requirement for toPublic
 
-❌ **Cross-chain privacy:** Not in scope (use bridges)
-❌ **Regulatory compliance:** Implementation choice
-❌ **Key management:** User/wallet responsibility
-❌ **Auditability backdoors:** Not our decision
-❌ **Wrapping existing tokens:** Use wrapper standards instead
+**Problem**: When converting privacy-to-transparent, the ZK circuit enforces value conservation:
 
-✅ **What we DO solve:**
-- Single-token privacy/transparency switching
-- Unified liquidity
-- Deploy-today solution
-- Full ERC-20 compatibility
+```
+input_amount = output_amount
+```
 
----
+But we need to "convert" value from privacy mode to public mode. The circuit doesn't know that the contract will create public balance, so we must ensure the converted value doesn't remain spendable in privacy mode.
 
-## Open Questions for Community
+**Solution**: Force the first output to an unspendable address (BURN_ADDRESS):
 
-1. **Naming:** Is "Dual-Mode" the best term?
-   - Alternatives: "Convertible Privacy Token", "Hybrid Token"
+```
+Input:  Note A (100)
+Output: Note B → BURN_ADDRESS (50)  ← Provably unspendable
+        Note C → User (50, change)  ← Remains private
 
-2. **totalSupply() semantics:** Should privacy supply be included?
-   - Current: Yes (reflects actual existence)
-   - Alternative: No (strict ERC-20 interpretation)
+Contract: Creates 50 public balance for user
+```
 
-3. **Mandatory vs. Optional fees:** Should standard enforce or suggest?
-   - Current: Optional (implementation choice)
-   - Alternative: Mandatory standardization
+**This ensures**:
+- ✅ Circuit value conservation: 100 = 50 + 50
+- ✅ Security: Note B can never be spent (no private key exists)
+- ✅ Supply invariant: totalSupply unchanged, just redistributed between modes
 
-4. **Circuit complexity:** Can we simplify the dual-tree design?
-   - Trade-off: Simplicity vs. Security
-
-5. **Gas costs:** ~250K gas for proof verification acceptable?
-   - Alternative: Optimize circuits further?
+**Alternative**: A custom circuit could directly output `conversionAmount` without creating a BURN_ADDRESS note. This is more efficient but requires circuit development and trusted setup. The BURN_ADDRESS approach allows reuse of standard transfer circuits.
 
 ---
 
-## Evolution from Earlier Designs
+### totalPrivacySupply Tracking
 
-### v1.0 (Wrapper-thinking)
-- Separate "privacy pool"
-- "Deposit/withdraw" terminology
-- Two logical tokens
+**Why track separately?**
 
-### v2.0 (Dual-mode thinking) ✅ Current
-- Single token, dual modes
-- "Convert mode" terminology
-- Unified liquidity
+Implementations cannot compute `totalPrivacySupply` by summing unspent commitments because:
+- Commitment values are encrypted (only hash is on-chain)
+- Traversing the entire Merkle tree is computationally infeasible
 
-**Key insight:** Terminology matters! Changed from wrapper language to mode-switching language for conceptual clarity.
+**Solution**: Track by increment/decrement:
+- `toPrivacy`: `totalPrivacySupply += amount`
+- `toPublic`: `totalPrivacySupply -= amount`
+- `mint`: `totalPrivacySupply += amount`
+- Privacy transfers: No change (value stays in privacy mode)
+
+**Supply invariant maintained**:
+```solidity
+totalSupply() = ERC20.balanceOf(all addresses) + totalPrivacySupply
+```
 
 ---
 
-## Conclusion
+### totalSupply() Semantics
 
-This standard fills a gap between:
-- **Too simple:** Wrapper approaches (fragmented liquidity)
-- **Too hard:** Protocol-level changes (multi-year deployment)
+**Decision**: Include both public and privacy supply
 
-**Sweet spot:** Deploy-today privacy with unified liquidity for new tokens.
+```solidity
+function totalSupply() public view returns (uint256) {
+    return publicSupply + totalPrivacySupply;
+}
+```
 
-**Philosophy:** Privacy should be an operational mode, not a separate asset class.
+**Rationale**:
+- Reflects actual token existence
+- Mode conversion doesn't change total supply
+- Maintains ERC-20 compatibility (total supply is meaningful)
+
+**Why this matters**: During mode conversion, `totalSupply()` remains constant while `publicSupply` and `totalPrivacySupply` change inversely.
+
+---
+
+## Implementation Recommendations
+
+### Dual-Layer Merkle Tree (RECOMMENDED)
+
+Implementations SHOULD use a dual-layer Merkle tree architecture:
+
+**Active Subtree**:
+- Height: RECOMMENDED 16 levels (65,536 leaves)
+- Purpose: Store recent commitments
+- Can be reorganized (for rollover operations)
+
+**Finalized Root Tree**:
+- Height: RECOMMENDED 16 levels (65,536 roots)
+- Purpose: Store historical subtree roots
+- Immutable once written
+
+**Benefits**:
+- Efficient proof generation (smaller subtrees)
+- Scalability (can handle millions of commitments)
+- Security (finalized state prevents reorganization)
+
+---
+
+## Security Considerations Summary
+
+### Supply Conservation
+```solidity
+// Mode conversion maintains invariant
+publicSupply_before + privacySupply_before =
+publicSupply_after + privacySupply_after
+```
+
+### Double-Spend Prevention
+- Nullifier tracking prevents commitment reuse
+- Each commitment can only be spent once
+- Nullifiers are permanent (never deleted)
+
+### Mode Conversion Integrity
+- BURN_ADDRESS check ensures outputs can't be spent in both modes
+- Contract MUST verify `recipientX == BURN_ADDRESS_X`
+- Prevents double-spending across modes
+
+---
+
+## What This Standard Does NOT Solve
+
+**Out of scope** (intentionally):
+- ❌ Cross-chain privacy coordination
+- ❌ Regulatory compliance frameworks
+- ❌ Key management solutions
+- ❌ Auditability backdoors
+- ❌ Adding privacy to existing deployed tokens (use wrapper standards)
+
+**In scope**:
+- ✅ Single-token privacy/transparency switching
+- ✅ Unified liquidity
+- ✅ Deploy-today solution
+- ✅ Full ERC-20 compatibility
+
+---
+
+## Terminology Evolution
+
+**Early design** (wrapper-thinking):
+- "deposit/withdraw"
+- "privacy pool"
+- "wrap/unwrap"
+
+**Current standard** (dual-mode thinking):
+- "toPrivacy/toPublic"
+- "privacy mode"
+- "mode conversion"
+
+This terminology better reflects the core concept: **privacy is a mode, not a separate asset**.
+
+---
+
+For complete technical details, see [ERC_DRAFT.md](../ERC_DRAFT.md).
