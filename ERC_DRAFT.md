@@ -17,19 +17,181 @@ This EIP defines a standard interface for fungible tokens that operate in two mo
 
 ## Motivation
 
-Current blockchain tokens force users to choose between incompatible paradigms:
+### The Privacy Dilemma for New Token Projects
 
-1. **Transparent tokens (ERC-20)**: Full DeFi composability but zero privacy
-2. **Privacy protocols (mixers, privacy coins)**: Strong privacy but limited composability and regulatory concerns
+When launching a new token, projects face a fundamental choice:
 
-This creates a dilemma: businesses need regulatory-compliant transparency for certain operations, while individuals need privacy for sensitive transactions. Neither existing solution provides both within a single token.
+1. **Standard ERC-20**: Full DeFi composability but zero privacy
+2. **Pure privacy protocols**: Strong privacy but limited ecosystem integration
 
-A dual-mode standard enables context-dependent privacy:
-- Use transparent mode for DeFi interactions, compliance reporting, public treasury operations
-- Use privacy mode for payroll, personal savings, competitive business strategies
-- Convert between modes freely based on the use case
+This creates real-world problems:
+- **DAOs** need public treasury transparency but want anonymous governance voting
+- **Businesses** require auditable accounting but need private payroll transactions
+- **Users** want DeFi participation but need privacy for personal holdings
 
-This approach maintains ERC-20 compatibility (enabling existing DeFi integration) while providing optional privacy when needed.
+Existing solutions require trade-offs that limit adoption.
+
+### Current Approaches and Their Limitations
+
+#### 1. Wrapper-Based Privacy (e.g., Tornado Cash, Privacy Pools)
+
+**Mechanism**: Wrap existing tokens (DAI, ETH) into a privacy pool contract.
+
+```
+DAI (public) → deposit → Privacy Pool → withdraw → DAI (public)
+```
+
+**Strengths**:
+- ✅ Works with any existing ERC-20 token
+- ✅ Permissionless deployment
+- ✅ No changes to underlying token required
+
+**Limitations for New Token Projects**:
+- ❌ Creates two separate tokens (Token A vs. Wrapped Token B)
+- ❌ Splits liquidity between public and wrapped versions
+- ❌ Requires managing two separate contract addresses
+- ❌ Users must unwrap to access DeFi (additional friction)
+
+**Best suited for**: Adding privacy to existing deployed tokens (DAI, USDC, etc.)
+
+#### 2. Protocol-Level Privacy (e.g., Zcash)
+
+**Mechanism**: Privacy built into blockchain consensus layer.
+
+**Strengths**:
+- ✅ Maximum anonymity set (all network users)
+- ✅ Native privacy guarantees
+
+**Limitations**:
+- ❌ Requires new blockchain or hard fork (multi-year coordination)
+- ❌ Cannot be deployed as application-layer solution
+- ❌ Not suitable for token projects on existing chains
+
+**Best suited for**: New blockchain protocols, not token standards
+
+### Our Approach: Integrated Dual-Mode for New Tokens
+
+This standard provides a third option specifically designed for **new token deployments** that want privacy as a core feature from day one.
+
+**Target Use Case**: Projects launching new tokens (governance tokens, protocol tokens, app tokens) that need both DeFi integration and optional privacy.
+
+**Mechanism**:
+```
+Single Token Contract
+  ↓
+Public Mode (ERC-20) ←→ Privacy Mode (ZK-SNARK)
+  ↓                           ↓
+DeFi/DEX Trading          Private Holdings
+```
+
+**Key Advantages**:
+
+1. **Unified Token Economics**
+   - No liquidity split between public/private versions
+   - One token address, one market price
+   - Simplified token distribution and airdrops
+
+2. **Seamless Mode Switching**
+   - Convert to privacy mode for holdings: `toPrivacy()`
+   - Convert to public mode for DeFi: `toPublic()`
+   - Users choose privacy per transaction, not per token
+
+3. **Full ERC-20 Compatibility**
+   - Works with existing wallets, DEXs, and DeFi protocols
+   - No special support needed for public mode operations
+   - Standard `totalSupply()` accounting: public + private
+
+4. **Transparent Supply Tracking**
+   - `totalSupply() = totalPublicSupply() + totalPrivacySupply()`
+   - Prevents hidden inflation
+   - Regulatory visibility into aggregate metrics
+
+5. **Application-Layer Deployment**
+   - Deploy today on any EVM chain (Ethereum, L2s, sidechains)
+   - No protocol changes or governance votes required
+   - No coordination with core developers needed
+
+### Honest Limitations
+
+This standard is **not** a universal solution. Key constraints:
+
+1. **New Tokens Only**
+   - Designed for new token deployments with privacy built-in
+   - Cannot add privacy to existing tokens (use wrapper-based solutions for that)
+
+2. **Privacy-to-DeFi Requires Conversion**
+   - Privacy mode balances cannot directly interact with DEXs/DeFi
+   - Users must `toPublic()` before DeFi operations (similar to unwrapping)
+   - Conversion reveals amounts on-chain (privacy-to-public events)
+
+3. **Gas Overhead**
+   - ZK proof verification: ~250-300K gas per privacy transaction
+   - Higher cost than standard ERC-20 transfers (~21K gas)
+
+4. **Anonymity Set Limitations**
+   - Privacy guarantees depend on number of active privacy mode users
+   - Smaller anonymity set than large established privacy pools
+   - Amount correlation possible through conversion events
+
+### When to Use This Standard
+
+| Scenario | Recommended Approach |
+|----------|---------------------|
+| Adding privacy to DAI, USDC, WETH | ❌ Use wrapper-based (this won't work) |
+| Launching new governance/protocol token | ✅ **This standard** |
+| Maximum privacy for existing assets | ❌ Use established privacy pools |
+| DAO treasury with selective privacy | ✅ **This standard** |
+| Privacy for entire blockchain | ❌ Protocol-level solution |
+| Privacy-first DeFi protocol token | ✅ **This standard** |
+
+### Real-World Use Cases
+
+**1. DAO Governance Token**
+```
+Public Mode:
+  - Treasury management (transparent)
+  - Grant distributions (auditable)
+  - DEX trading (liquidity)
+
+Privacy Mode:
+  - Anonymous voting (no vote buying)
+  - Private delegation (confidential strategy)
+  - Personal holdings (no public scrutiny)
+```
+
+**2. Privacy-Aware Business Token**
+```
+Public Mode:
+  - Investor reporting (compliance)
+  - Exchange listings (liquidity)
+  - Public fundraising (transparency)
+
+Privacy Mode:
+  - Employee compensation (confidential)
+  - Supplier payments (competitive advantage)
+  - Strategic reserves (private holdings)
+```
+
+**3. Protocol Token with Optional Privacy**
+```
+Public Mode:
+  - Staking (DeFi integration)
+  - Liquidity provision (AMM pools)
+  - Trading (price discovery)
+
+Privacy Mode:
+  - Long-term holdings (privacy)
+  - Over-the-counter transfers (confidential)
+  - Strategic positions (no front-running)
+```
+
+### Design Philosophy
+
+This standard embraces a core principle: **"Privacy is a mode, not a separate token."**
+
+Rather than forcing users to choose between incompatible assets (Token A vs. Privacy Token B), we enable contextual privacy within a single fungible token. Users select the appropriate mode for each use case, maintaining capital efficiency and unified liquidity.
+
+This approach acknowledges that privacy and composability serve different purposes, and most users need both at different times—not a forced choice between them.
 
 ## Specification
 

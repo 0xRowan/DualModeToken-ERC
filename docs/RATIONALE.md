@@ -56,11 +56,21 @@ Token C (public mode ↔ private mode) = 1 asset
 
 ## Comparison with Alternatives
 
-| Architecture | Liquidity | Capital Efficiency | User Complexity | Deployment | Reversibility |
-|--------------|-----------|-------------------|-----------------|------------|---------------|
-| Wrapper-based | Fragmented | Low (locked) | High (2 tokens) | Easy | ✅ Yes |
-| Protocol-level | Unified | High | Low | Hard (years) | ❌ Usually no |
-| **This Standard** | **Unified** | **High** | **Low (1 token)** | **Easy** | **✅ Yes** |
+| Architecture | Use Case | Liquidity | Deployment | Reversibility | DeFi Access |
+|--------------|----------|-----------|------------|---------------|-------------|
+| Wrapper-based | Existing tokens ✅ | Fragmented for new tokens | Easy | ✅ Yes | Requires unwrap |
+| Protocol-level | New blockchains | Unified | Hard (years) | ✅ Yes (e.g., Zcash) | Native |
+| **This Standard** | **New tokens ✅** | **Unified** | **Easy** | **✅ Yes** | **Requires toPublic()** |
+
+**Key Insight**: This standard and wrapper-based approaches are **complementary**, not competing:
+- **Wrapper-based**: Best for adding privacy to existing tokens (DAI, USDC, etc.)
+- **This standard**: Best for new token launches with built-in privacy
+
+**Honest Comparison on "Capital Efficiency"**:
+- Both approaches require conversion before DeFi usage
+- Wrapper: `unwrap() → use DeFi`
+- This standard: `toPublic() → use DeFi`
+- The difference is organizational, not functional
 
 ---
 

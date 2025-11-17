@@ -34,11 +34,16 @@ Users can:
 
 | Aspect | Wrapper-Based | Protocol-Level | Dual-Mode (Ours) |
 |--------|--------------|----------------|------------------|
-| **Liquidity** | Fragmented | Unified | ✅ Unified |
-| **Deployment** | ✅ Today | Years (fork) | ✅ Today |
-| **Reversibility** | ✅ Yes | Often no | ✅ Yes |
-| **ERC-20 Compatible** | Separate token | N/A | ✅ Full |
-| **Capital Efficiency** | Low | High | ✅ High |
+| **Use Case** | Existing tokens ✅ | New blockchains | **New tokens ✅** |
+| **Liquidity** | Split for new tokens | Unified | **✅ Unified** |
+| **Deployment** | ✅ Today | Years (fork) | **✅ Today** |
+| **Reversibility** | ✅ Yes | ✅ Yes | **✅ Yes** |
+| **ERC-20 Compatible** | Separate token | N/A | **✅ Full** |
+| **DeFi Access** | Requires unwrap | Native | **Requires toPublic()** |
+
+**Key Insight**: Wrapper-based and dual-mode approaches are **complementary**:
+- **Wrapper**: Best for adding privacy to existing tokens (DAI, USDC)
+- **Dual-Mode**: Best for new token launches with built-in privacy
 
 ---
 
