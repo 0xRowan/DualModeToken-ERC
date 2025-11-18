@@ -181,9 +181,37 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 pragma solidity ^0.8.0;
 
 interface IERC_DUAL_MODE {
-    
-    event CommitmentAppended(uint32 indexed subtreeIndex, bytes32 commitment, uint32 indexed leafIndex, uint256 timestamp);
+
+    /// @notice Emitted when a commitment is added to the privacy state
+    /// @param subtreeIndex The subtree index (0 for single-tree implementations)
+    /// @param commitment The cryptographic commitment hash
+    /// @param leafIndex The position within the subtree (or global index for single-tree)
+    /// @param timestamp Block timestamp when commitment was added
+    /// @dev For single-tree: subtreeIndex SHOULD be 0, leafIndex is global position
+    /// @dev For dual-tree: subtreeIndex identifies which subtree, leafIndex is position within it
+    /// @dev Emitted by toPrivacy(), toPublic() (for change outputs), and privacyTransfer()
+    event CommitmentAppended(
+        uint32 indexed subtreeIndex,
+        bytes32 indexed commitment,
+        uint32 leafIndex,
+        uint256 timestamp
+    );
+
+    /// @notice Emitted when a nullifier is marked as spent
+    /// @param nullifier The unique nullifier hash that prevents double-spending
+    /// @dev Emitted by toPublic() and privacyTransfer() when notes are consumed
+    /// @dev Once emitted, the same nullifier cannot be used again
     event NullifierSpent(bytes32 indexed nullifier);
+
+    /// @notice Emitted when tokens are minted directly into privacy mode
+    /// @param minter The address that initiated the mint
+    /// @param commitment The commitment created for the minted value
+    /// @param encryptedNote Encrypted note data for recipient to decrypt
+    /// @param subtreeIndex The subtree where commitment was added
+    /// @param leafIndex The position within the subtree
+    /// @param timestamp Block timestamp of the mint
+    /// @dev This event is OPTIONAL - implementations MAY support direct privacy minting
+    /// @dev If not supported, users can mint publicly then use toPrivacy()
     event Minted(
         address indexed minter,
         bytes32 commitment,
@@ -192,6 +220,16 @@ interface IERC_DUAL_MODE {
         uint32 leafIndex,
         uint256 timestamp
     );
+
+    /// @notice Emitted for privacy-to-privacy transfers
+    /// @param newCommitments Array of output commitments created (typically 1-2)
+    /// @param encryptedNotes Encrypted note data for recipients to decrypt their outputs
+    /// @param ephemeralPublicKey Ephemeral public key for ECDH key exchange (if used)
+    /// @param viewTag Scanning optimization tag (if used, 0 otherwise)
+    /// @dev Implementations not using stealth addresses MAY emit [0,0] for ephemeralPublicKey
+    /// @dev Implementations not using view tags MAY emit 0 for viewTag
+    /// @dev Recipients use ephemeralPublicKey and their scan key to derive shared secret
+    /// @dev viewTag allows recipients to quickly filter irrelevant transactions
     event Transaction(
         bytes32[2] newCommitments,
         bytes[] encryptedNotes,
