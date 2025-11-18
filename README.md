@@ -3,7 +3,7 @@
 **A token standard combining ERC-20 (public) and ZK-SNARK (private) functionality within a single token.**
 
 > **Status**: Draft - Seeking community feedback
-> **Discussions**: [Ethereum Magicians](TBD)
+> **Discussions**: [Ethereum Magicians](https://ethereum-magicians.org/t/draft-dual-mode-token-standard-single-token-with-public-and-private-modes/26592)
 
 ---
 
@@ -93,7 +93,7 @@ This is an open proposal seeking community feedback. We welcome:
 - Implementation feedback
 - Alternative design proposals
 
-**Discussion Forum**: [Ethereum Magicians](TBD) (to be created)
+**Discussion Forum**: [Ethereum Magicians](https://ethereum-magicians.org/t/draft-dual-mode-token-standard-single-token-with-public-and-private-modes/26592)
 
 ---
 
@@ -114,7 +114,7 @@ Copyright and related rights waived via [CC0](https://creativecommons.org/public
 
 ## 👥 Authors
 
-- ZK Protocol Team ([@ZK-Protocol](https://github.com/ZK-Protocol))
+- Rowan ([@0xRowan](https://github.com/0xRowan))
 
 ---
 

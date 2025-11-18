@@ -2,8 +2,8 @@
 eip: TBD
 title: Dual-Mode Fungible Token Standard
 description: A token standard supporting both transparent (ERC-20) and privacy-preserving (zk-SNARK) modes with seamless conversion
-author: ZK Protocol Team (@zkprotocol)
-discussions-to: TBD
+author: Rowan (@0xRowan)
+discussions-to: https://ethereum-magicians.org/t/draft-dual-mode-token-standard-single-token-with-public-and-private-modes/26592
 status: Draft
 type: Standards Track
 category: ERC
@@ -54,24 +54,10 @@ DAI (public) → deposit → Privacy Pool → withdraw → DAI (public)
 
 **Best suited for**: Adding privacy to existing deployed tokens (DAI, USDC, etc.)
 
-#### 2. Protocol-Level Privacy (e.g., Zcash)
-
-**Mechanism**: Privacy built into blockchain consensus layer.
-
-**Strengths**:
-- ✅ Maximum anonymity set (all network users)
-- ✅ Native privacy guarantees
-
-**Limitations**:
-- ❌ Requires new blockchain or hard fork (multi-year coordination)
-- ❌ Cannot be deployed as application-layer solution
-- ❌ Not suitable for token projects on existing chains
-
-**Best suited for**: New blockchain protocols, not token standards
 
 ### Our Approach: Integrated Dual-Mode for New Tokens
 
-This standard provides a third option specifically designed for **new token deployments** that want privacy as a core feature from day one.
+This standard provides a alternative option specifically designed for **new token deployments** that want privacy as a core feature from day one.
 
 **Target Use Case**: Projects launching new tokens (governance tokens, protocol tokens, app tokens) that need both DeFi integration and optional privacy.
 
@@ -123,15 +109,6 @@ This standard is **not** a universal solution. Key constraints:
    - Privacy mode balances cannot directly interact with DEXs/DeFi
    - Users must `toPublic()` before DeFi operations (similar to unwrapping)
    - Conversion reveals amounts on-chain (privacy-to-public events)
-
-3. **Gas Overhead**
-   - ZK proof verification: ~250-300K gas per privacy transaction
-   - Higher cost than standard ERC-20 transfers (~21K gas)
-
-4. **Anonymity Set Limitations**
-   - Privacy guarantees depend on number of active privacy mode users
-   - Smaller anonymity set than large established privacy pools
-   - Amount correlation possible through conversion events
 
 ### When to Use This Standard
 
